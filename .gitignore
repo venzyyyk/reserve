@@ -7,5 +7,10 @@ storybook-static/
 .lighthouseci/
 *.tsbuildinfo
 next-env.d.ts
-.env*.local
+# Every env file, not just *.local. Next.js also reads .env, .env.production
+# and .env.development, and this repository is public: one `git add -A` with a
+# live Atlas connection string in .env would publish the database password to
+# the world. The example file is the one exception, and it holds placeholders.
+.env*
+!.env.example
 .DS_Store
