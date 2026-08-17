@@ -24,15 +24,16 @@ export function ClubCard({ club }: { club: Club }) {
   const price = formatMoney(priceFrom(club));
 
   return (
-    <Link
-      href={clubHref(club)}
-      className="group block rounded-lg"
-      aria-label={t("cardLabel", {
-        name: club.name,
-        district: club.address.district,
-        price,
-      })}
-    >
+    /**
+     * No `aria-label`. The card already contains the club's name, district,
+     * table count and price as real text, so an `aria-label` does not add
+     * information — it *replaces* what a screen reader would otherwise read,
+     * and ours paraphrased it ("за годину" against a visible "/год", district
+     * without the metro line). axe reports that as
+     * `label-content-name-mismatch`, and it also breaks voice control, where
+     * the spoken command has to match the visible words.
+     */
+    <Link href={clubHref(club)} className="group block rounded-lg">
       <Card interactive className="overflow-hidden">
         <div
           aria-hidden

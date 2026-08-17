@@ -17,10 +17,17 @@
   --color-danger: #d32f2f;
   --color-danger-soft: rgb(211 47 47 / 0.12);
 
-  /* Text — ADR-0002: "fg" naming for Tailwind ergonomics */
+  /* Text — ADR-0002: "fg" naming for Tailwind ergonomics.
+     fg-3 is the dimmest step, and it still carries real content: footer
+     contacts, field hints, captions. It was #6e6e6e, which is 3.86:1 on the
+     page background — below the 4.5:1 WCAG AA needs for text this size, and
+     worse again on the raised surfaces. #949494 clears 4.5:1 on every surface
+     in this file (4.59:1 on the lightest, surface-3). A tertiary tone that
+     cannot be read is not a tone, so the hierarchy gives up a little contrast
+     between fg-2 and fg-3 rather than legibility. */
   --color-fg: #ffffff;
   --color-fg-2: #b3b3b3;
-  --color-fg-3: #6e6e6e;
+  --color-fg-3: #949494;
 
   /* Lines */
   --color-line: rgb(255 255 255 / 0.07);

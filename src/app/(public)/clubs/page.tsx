@@ -100,13 +100,29 @@ export default async function ClubsPage({
               }
             />
           ) : (
-            <ul aria-label={t("results")} className="grid gap-5 sm:grid-cols-2">
-              {results.map((club) => (
-                <li key={club.id}>
-                  <ClubCard club={club} />
-                </li>
-              ))}
-            </ul>
+            <>
+              {/* The catalogue jumped from the page h1 straight to the card
+                  headings (h3), so anyone navigating by heading — the usual
+                  way to skim a page with a screen reader — fell through a
+                  missing level. A real heading for the results fills it, and
+                  labels the list better than an aria-label did: it is now a
+                  landmark you can jump *to*, not just a name read out when
+                  you happen to arrive. Visually hidden because the h1 and
+                  the result count above already say this in the design. */}
+              <h2 id="results-heading" className="sr-only">
+                {t("results")}
+              </h2>
+              <ul
+                aria-labelledby="results-heading"
+                className="grid gap-5 sm:grid-cols-2"
+              >
+                {results.map((club) => (
+                  <li key={club.id}>
+                    <ClubCard club={club} />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       </div>

@@ -25,7 +25,6 @@
     "closed": "Зачинено"
   },
   "clubCard": {
-    "cardLabel": "{name}, {district} — від {price} за годину",
     "districtWithMetro": "{district} · {minutes} хв від м. {metro}",
     "tables": "{count, plural, one {# стіл} few {# столи} many {# столів} other {# столів}}",
     "priceFrom": "від {price}",
