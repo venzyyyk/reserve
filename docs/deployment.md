@@ -59,8 +59,15 @@ link and every page Google indexes points at `localhost:3000`.
 
 `SUPERADMIN_PASSWORD` has a development default so the panel works out of
 the box locally. In production it is the only thing between a stranger and
-the admin panel, so it must be set — and there is only one of it, for one
-operator, until per-user accounts exist.
+the admin panel, so the panel **refuses to open** if it is missing or still
+set to the development value — the default is published in this repository,
+which makes it no lock at all. Generate one and paste it into Vercel:
+
+```bash
+openssl rand -base64 32
+```
+
+There is only one password, for one operator, until per-user accounts exist.
 
 **Give Preview deployments a separate database.** Set `MONGODB_DB_NAME` to
 `reserve_preview` for the Preview environment, or a preview branch will

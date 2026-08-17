@@ -17,9 +17,40 @@ import { cookies } from "next/headers";
  */
 const COOKIE = "rsv_admin";
 
-/** Dev default keeps the panel usable locally without setup. */
+/** Keeps the panel usable locally without setup. Never valid in production. */
+const DEV_PASSWORD = "reserve-dev";
+
+/**
+ * The dev default is in this file, this file is on GitHub, and a forgotten
+ * environment variable is the most ordinary mistake in deployment there is.
+ * Together that means an open admin panel — anyone who reads the repository
+ * would know the password to every booking, club and price on the platform.
+ *
+ * So production refuses the default rather than accepting it, the same way
+ * `storage.ts` refuses to fall back to in-memory persistence. A deployment
+ * that is missing a secret should fail loudly at the door it protects, not
+ * serve happily with the lock unturned. Checked here, on the path that reads
+ * the value, so a build without secrets configured still builds.
+ */
 function expectedPassword(): string {
-  return process.env.SUPERADMIN_PASSWORD ?? "reserve-dev";
+  const configured = process.env.SUPERADMIN_PASSWORD;
+
+  if (process.env.NODE_ENV === "production") {
+    if (configured === undefined || configured === "") {
+      throw new Error(
+        "SUPERADMIN_PASSWORD is not set. The Super Admin panel has no other " +
+          "lock, so this deployment refuses to open it.",
+      );
+    }
+    if (configured === DEV_PASSWORD) {
+      throw new Error(
+        "SUPERADMIN_PASSWORD is still the development default, which is " +
+          "public in the repository. Set a real one.",
+      );
+    }
+  }
+
+  return configured ?? DEV_PASSWORD;
 }
 
 /**
