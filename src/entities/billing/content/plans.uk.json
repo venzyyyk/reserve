@@ -1,0 +1,102 @@
+{
+  "features": [
+    {
+      "id": "listing",
+      "label": "Сторінка клубу в каталозі",
+      "hint": "Фото, столи, ціни, години роботи"
+    },
+    { "id": "online_booking", "label": "Онлайн-бронювання столів" },
+    { "id": "qr_checkin", "label": "QR-код замість дзвінка на вході" },
+    { "id": "admin_panel", "label": "Панель адміністратора клубу" },
+    { "id": "occupancy", "label": "Аналітика завантаження столів" },
+    {
+      "id": "featured",
+      "label": "Позначка «Рекомендовано» в каталозі",
+      "hint": "Клуб піднімається над іншими у своєму місті"
+    },
+    { "id": "priority_support", "label": "Пріоритетна підтримка" },
+    {
+      "id": "homepage_banner",
+      "label": "Банер на головній сторінці",
+      "hint": "Ротація серед клубів рівня PRO"
+    },
+    {
+      "id": "priority_recommendations",
+      "label": "Пріоритет у рекомендаціях",
+      "hint": "Вище за рівних конкурентів у блоках «Схожі клуби»"
+    },
+    { "id": "manager", "label": "Персональний менеджер" }
+  ],
+  "plans": [
+    {
+      "id": "plan_basic",
+      "tier": "basic",
+      "name": "Basic",
+      "tagline": "Щоб вас знайшли і забронювали стіл онлайн",
+      "priceMonthly": 0,
+      "commissionPercent": 8,
+      "featuredDays": 0,
+      "homepageBanner": false,
+      "priorityRecommendations": false,
+      "featureIds": [
+        "listing",
+        "online_booking",
+        "qr_checkin",
+        "admin_panel",
+        "occupancy"
+      ],
+      "active": true,
+      "highlighted": false,
+      "order": 1
+    },
+    {
+      "id": "plan_vip",
+      "tier": "vip",
+      "name": "VIP",
+      "tagline": "Клуб помітний першим — там, де обирають",
+      "priceMonthly": 149000,
+      "commissionPercent": 5,
+      "featuredDays": 30,
+      "homepageBanner": false,
+      "priorityRecommendations": false,
+      "featureIds": [
+        "listing",
+        "online_booking",
+        "qr_checkin",
+        "admin_panel",
+        "occupancy",
+        "featured",
+        "priority_support"
+      ],
+      "active": true,
+      "highlighted": true,
+      "order": 2
+    },
+    {
+      "id": "plan_pro",
+      "tier": "pro",
+      "name": "PRO",
+      "tagline": "Максимум уваги: головна, рекомендації, менеджер",
+      "priceMonthly": 349000,
+      "commissionPercent": 3,
+      "featuredDays": 30,
+      "homepageBanner": true,
+      "priorityRecommendations": true,
+      "featureIds": [
+        "listing",
+        "online_booking",
+        "qr_checkin",
+        "admin_panel",
+        "occupancy",
+        "featured",
+        "priority_support",
+        "homepage_banner",
+        "priority_recommendations",
+        "manager"
+      ],
+      "active": true,
+      "highlighted": false,
+      "order": 3
+    }
+  ]
+}

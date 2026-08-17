@@ -1,0 +1,26 @@
+# Local MongoDB for development.
+#
+# A plain standalone server is enough: the booking guard is one atomic
+# document update, not a multi-document transaction, so no replica set and
+# no `rs.initiate()` step (ADR-0009).
+#
+#   docker compose up -d mongodb
+#   npm run seed
+#
+services:
+  mongodb:
+    image: mongo:7
+    container_name: reserve-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongodb-data:

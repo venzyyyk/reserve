@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+/* ── Cue design tokens (MPS §3) ─────────────────────────────────────────── */
+@theme {
+  /* Surfaces */
+  --color-bg: #0b0b0b;
+  --color-surface-1: #171717;
+  --color-surface-2: #242424;
+  --color-surface-3: #2e2c28;
+
+  /* Brand */
+  --color-gold: #c89b3c;
+  --color-gold-hover: #d9af56;
+  --color-gold-soft: rgb(200 155 60 / 0.12);
+  --color-felt: #2e7d32;
+  --color-felt-soft: rgb(46 125 50 / 0.15);
+  --color-danger: #d32f2f;
+  --color-danger-soft: rgb(211 47 47 / 0.12);
+
+  /* Text — ADR-0002: "fg" naming for Tailwind ergonomics */
+  --color-fg: #ffffff;
+  --color-fg-2: #b3b3b3;
+  --color-fg-3: #6e6e6e;
+
+  /* Lines */
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+
+  /* Floor plan semantics (consumed from M3) */
+  --color-table-free: #2e7d32;
+  --color-table-busy: #3e4a40;
+  --color-table-reserved: #b37d2e;
+  --color-table-vip: #c89b3c;
+
+  /* Typography */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Unbounded Variable", var(--font-sans);
+  --text-display-xl: 3.5rem;
+  --text-display-xl--line-height: 4rem;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display: 2.25rem;
+  --text-display--line-height: 2.75rem;
+  --text-display--letter-spacing: -0.015em;
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+  --text-title--letter-spacing: -0.01em;
+  --text-heading: 1.125rem;
+  --text-heading--line-height: 1.75rem;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5rem;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-price: 1.25rem;
+  --text-price--line-height: 1.75rem;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+
+  /* Elevation = light, not shadow */
+  --shadow-elev-1: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --shadow-elev-2:
+    inset 0 1px 0 rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-elev-3:
+    inset 0 1px 0 rgb(255 255 255 / 0.08), 0 16px 48px rgb(0 0 0 / 0.5);
+  --shadow-glow-gold:
+    0 0 0 1px rgb(200 155 60 / 0.4), 0 0 24px rgb(200 155 60 / 0.18);
+  --shadow-glow-felt: 0 0 16px rgb(46 125 50 / 0.35);
+
+  /* Motion — overrides Tailwind defaults with the Cue curves */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-live: live 2s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes live {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-body text-fg font-sans antialiased;
+}
+
+/* Focus contract (MPS §3): gold ring, offset 2. White ring on gold surfaces
+   is applied per-component. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-gold-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Star rating (MPS §3 forms).
+
+   Written in CSS rather than React so the ticket page stays free of client
+   JavaScript: the radios are the state, `:has()` paints the selection, and
+   hover previews the same way. The group is laid out in reverse DOM order
+   so "this star and every lower one" is a plain sibling selector.
+
+   Falls back gracefully: with `:has()` unsupported the stars still select,
+   they just do not fill until the page re-renders. */
+.rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.rating > label {
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-fg-3);
+  transition: color var(--duration-fast) ease-out;
+}
+
+.rating > label:hover,
+.rating > label:hover ~ label,
+.rating:has(> label > input:checked) > label:has(> input:checked),
+.rating:has(> label > input:checked) > label:has(> input:checked) ~ label {
+  color: var(--color-gold);
+}
+
+.rating > label:hover svg,
+.rating > label:hover ~ label svg,
+.rating > label:has(> input:checked) svg,
+.rating > label:has(> input:checked) ~ label svg {
+  fill: currentColor;
+}
+
+.rating > label:has(> input:focus-visible) {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Ambient background (MPS §3 motion).
+
+   The hero's light is two radial pools — felt green from above, a warm lamp
+   to the right. Static, they read as a photograph; drifting slowly, the room
+   feels lit rather than painted.
+
+   Rules this obeys, because a background is the one thing on screen nobody
+   asked to watch:
+
+   - only `transform` and `opacity` animate, so the compositor does the work
+     and the main thread is free for the booking flow;
+   - `will-change` is deliberately absent — promoting a full-screen layer
+     costs memory on exactly the mid-range Android where it would hurt;
+   - the cycle is 28 seconds and the movement is a few percent. If you can
+     see it move while reading, it is wrong;
+   - `prefers-reduced-motion` stops it dead, and the layers stay where they
+     started, which is the composition the page was designed around. */
+.ambient {
+  position: absolute;
+  inset: -10%;
+  z-index: -10;
+  pointer-events: none;
+}
+
+.ambient-felt,
+.ambient-lamp {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 0%;
+}
+
+.ambient-felt {
+  background: radial-gradient(
+    120% 80% at 50% 8%,
+    rgb(46 125 50 / 0.3),
+    transparent 60%
+  );
+  animation: ambient-drift-felt 28s ease-in-out infinite;
+}
+
+.ambient-lamp {
+  background: radial-gradient(
+    60% 40% at 78% 18%,
+    rgb(200 155 60 / 0.18),
+    transparent 70%
+  );
+  animation: ambient-drift-lamp 34s ease-in-out infinite;
+}
+
+@keyframes ambient-drift-felt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(-1.5%, 1.5%, 0) scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes ambient-drift-lamp {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate3d(2.5%, -1%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Parallax, driven by the scroll position rather than by JavaScript.
+
+   `animation-timeline: scroll()` hands the whole thing to the compositor:
+   no scroll listener, no rAF loop, no client component on a homepage that
+   currently ships almost none. Where the browser does not support it the
+   `@supports` block simply never applies and the pools keep breathing on
+   their own — the page was designed around that state anyway.
+
+   The two layers move at different rates, which is what reads as depth. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ambient-felt {
+      animation:
+        ambient-drift-felt 28s ease-in-out infinite,
+        ambient-parallax-far linear both;
+      animation-timeline: auto, scroll();
+      animation-range:
+        normal,
+        0 100vh;
+    }
+
+    .ambient-lamp {
+      animation:
+        ambient-drift-lamp 34s ease-in-out infinite,
+        ambient-parallax-near linear both;
+      animation-timeline: auto, scroll();
+      animation-range:
+        normal,
+        0 100vh;
+    }
+  }
+}
+
+@keyframes ambient-parallax-far {
+  to {
+    translate: 0 6vh;
+  }
+}
+
+@keyframes ambient-parallax-near {
+  to {
+    translate: 0 14vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-felt,
+  .ambient-lamp {
+    animation: none;
+  }
+}

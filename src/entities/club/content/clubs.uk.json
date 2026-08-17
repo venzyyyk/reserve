@@ -1,0 +1,198 @@
+[
+  {
+    "id": "clb_kyiv_klasyk",
+    "slug": "klasyk",
+    "city": "kyiv",
+    "name": "Класик",
+    "story": "Найстаріший клуб Печерська. 12 столів, тиша і жодного телевізора.",
+    "about": [
+      "«Класик» відкрився у 1998-му і відтоді майже не змінився: ті самі дубові панелі, ті самі лампи над столами, той самий адміністратор Володимир.",
+      "Сюди приходять грати, а не дивитися футбол. Телевізорів немає принципово — тільки стук куль і приглушені розмови."
+    ],
+    "address": {
+      "street": "вул. Саксаганського, 12",
+      "district": "Печерськ",
+      "metro": { "name": "Палац Спорту", "walkMinutes": 6 },
+      "coords": { "lat": 50.4392, "lng": 30.5178 },
+      "parking": "Безкоштовна парковка у дворі, 8 місць"
+    },
+    "phone": "+380442001234",
+    "hours": {
+      "mon": { "open": "12:00", "close": "02:00" },
+      "tue": { "open": "12:00", "close": "02:00" },
+      "wed": { "open": "12:00", "close": "02:00" },
+      "thu": { "open": "12:00", "close": "02:00" },
+      "fri": { "open": "12:00", "close": "04:00" },
+      "sat": { "open": "14:00", "close": "04:00" },
+      "sun": { "open": "14:00", "close": "00:00" }
+    },
+    "tables": [
+      {
+        "type": "russian",
+        "count": 8,
+        "sizeFt": 12,
+        "brand": "Start Billiards",
+        "pricePerHourFrom": 25000
+      },
+      { "type": "pool", "count": 4, "sizeFt": 9, "pricePerHourFrom": 20000 }
+    ],
+    "amenities": ["bar", "vip_rooms", "cue_rental", "wifi", "ac"],
+    "featured": true,
+    "accentHue": 145
+  },
+  {
+    "id": "clb_kyiv_abrikol",
+    "slug": "abrikol",
+    "city": "kyiv",
+    "name": "Абріколь",
+    "story": "Пул-хол на Подолі: дев'ять столів, вініл і кухня до опівночі.",
+    "about": [
+      "Абріколь — це пул і музика. Дев'ять столів Brunswick стоять просторо, між ними можна пройти з келихом, нікого не зачепивши.",
+      "Кухня працює до півночі, а платівки на програвачі змінює бармен — за традицією, без плейлистів."
+    ],
+    "address": {
+      "street": "вул. Верхній Вал, 24",
+      "district": "Поділ",
+      "metro": { "name": "Контрактова площа", "walkMinutes": 8 },
+      "coords": { "lat": 50.4676, "lng": 30.5152 }
+    },
+    "phone": "+380442005678",
+    "hours": {
+      "mon": { "open": "11:00", "close": "23:00" },
+      "tue": { "open": "11:00", "close": "23:00" },
+      "wed": { "open": "11:00", "close": "23:00" },
+      "thu": { "open": "11:00", "close": "23:00" },
+      "fri": { "open": "11:00", "close": "02:00" },
+      "sat": { "open": "11:00", "close": "02:00" },
+      "sun": { "open": "12:00", "close": "22:00" }
+    },
+    "tables": [
+      {
+        "type": "pool",
+        "count": 9,
+        "sizeFt": 9,
+        "brand": "Brunswick",
+        "pricePerHourFrom": 18000
+      }
+    ],
+    "amenities": ["bar", "kitchen", "wifi", "ac", "accessible"],
+    "featured": true,
+    "accentHue": 210
+  },
+  {
+    "id": "clb_kyiv_piramida",
+    "slug": "piramida",
+    "city": "kyiv",
+    "name": "Піраміда",
+    "story": "Цілодобовий клуб біля Лук'янівки — для тих, чия гра починається опівночі.",
+    "about": [
+      "Піраміда працює двадцять годин на добу і живе за нічним графіком: найбільше людей тут між першою та четвертою ранку."
+    ],
+    "address": {
+      "street": "вул. Дегтярівська, 8",
+      "district": "Лук'янівка",
+      "metro": { "name": "Лук'янівська", "walkMinutes": 5 },
+      "coords": { "lat": 50.4712, "lng": 30.4728 },
+      "parking": "Платна парковка біля входу"
+    },
+    "phone": "+380442009012",
+    "hours": {
+      "mon": { "open": "10:00", "close": "06:00" },
+      "tue": { "open": "10:00", "close": "06:00" },
+      "wed": { "open": "10:00", "close": "06:00" },
+      "thu": { "open": "10:00", "close": "06:00" },
+      "fri": { "open": "10:00", "close": "06:00" },
+      "sat": { "open": "10:00", "close": "06:00" },
+      "sun": { "open": "10:00", "close": "06:00" }
+    },
+    "tables": [
+      {
+        "type": "russian",
+        "count": 6,
+        "sizeFt": 12,
+        "pricePerHourFrom": 15000
+      },
+      { "type": "pool", "count": 3, "sizeFt": 8, "pricePerHourFrom": 12000 }
+    ],
+    "amenities": ["bar", "parking", "cue_rental", "wifi"],
+    "featured": false,
+    "accentHue": 30
+  },
+  {
+    "id": "clb_lviv_ratusha",
+    "slug": "ratusha",
+    "city": "lviv",
+    "name": "Ратуша",
+    "story": "Підвал австрійської кам'яниці в центрі Львова. Цегла, дерево, снукер.",
+    "about": [
+      "Два снукерні столи Riley — рідкість для України, і саме по них сюди їдуть з інших міст.",
+      "Склепінчаста стеля з цегли XIX століття тримає тишу краще за будь-яку шумоізоляцію."
+    ],
+    "address": {
+      "street": "вул. Валова, 3",
+      "district": "Центр",
+      "coords": { "lat": 49.8412, "lng": 24.0334 }
+    },
+    "phone": "+380322001122",
+    "hours": {
+      "mon": { "open": "13:00", "close": "01:00" },
+      "tue": { "open": "13:00", "close": "01:00" },
+      "wed": { "open": "13:00", "close": "01:00" },
+      "thu": { "open": "13:00", "close": "01:00" },
+      "fri": { "open": "13:00", "close": "03:00" },
+      "sat": { "open": "13:00", "close": "03:00" },
+      "sun": { "open": "13:00", "close": "23:00" }
+    },
+    "tables": [
+      {
+        "type": "snooker",
+        "count": 2,
+        "sizeFt": 12,
+        "brand": "Riley",
+        "pricePerHourFrom": 30000
+      },
+      { "type": "pool", "count": 5, "sizeFt": 9, "pricePerHourFrom": 17000 }
+    ],
+    "amenities": ["bar", "wifi", "cue_rental", "vip_rooms"],
+    "featured": true,
+    "accentHue": 260
+  },
+  {
+    "id": "clb_odesa_lanzheron",
+    "slug": "lanzheron",
+    "city": "odesa",
+    "name": "Ланжерон",
+    "story": "Більярд із видом на море: вісім столів і тераса з бризом.",
+    "about": [
+      "Влітку вікна відчиняють навстіж, і в залі чути море. Взимку працює тільки основна зала — тераса зачинена."
+    ],
+    "address": {
+      "street": "Ланжеронівський узвіз, 2",
+      "district": "Приморський",
+      "coords": { "lat": 46.4825, "lng": 30.7573 },
+      "parking": "Паркінг на 20 місць, безкоштовно для гостей"
+    },
+    "phone": "+380482003344",
+    "hours": {
+      "mon": { "open": "12:00", "close": "00:00" },
+      "tue": { "open": "12:00", "close": "00:00" },
+      "wed": { "open": "12:00", "close": "00:00" },
+      "thu": { "open": "12:00", "close": "00:00" },
+      "fri": { "open": "12:00", "close": "02:00" },
+      "sat": { "open": "12:00", "close": "02:00" },
+      "sun": { "open": "12:00", "close": "00:00" }
+    },
+    "tables": [
+      {
+        "type": "russian",
+        "count": 5,
+        "sizeFt": 12,
+        "pricePerHourFrom": 22000
+      },
+      { "type": "pool", "count": 3, "sizeFt": 9, "pricePerHourFrom": 16000 }
+    ],
+    "amenities": ["bar", "kitchen", "parking", "ac"],
+    "featured": false,
+    "accentHue": 190
+  }
+]

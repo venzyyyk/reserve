@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+coverage/
+reports/
+storybook-static/
+.lighthouseci/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.DS_Store

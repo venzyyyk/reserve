@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # A real MongoDB, for two reasons. The integration, concurrency and
+    # chaos suites are worthless if they only ever run against a mock — the
+    # ten-way race for one table has to happen somewhere. And since M6 the
+    # production server refuses to start without a database, so Lighthouse
+    # could not measure anything either.
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGODB_URI: mongodb://localhost:27017
+      MONGODB_DB_NAME: reserve_ci
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint (incl. architecture boundaries)
+        run: npm run lint
+      - name: Dependency graph (inversions, illegal edges, runtime cycles)
+        run: npm run graph
+      - name: Architecture Decision Log (format + index consistency)
+        run: npm run adr:check
+      - name: Upload dependency graph report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: reports/
+          retention-days: 30
+      - name: Format check
+        run: npm run format
+      - name: Unit & component tests
+        run: npm test
+      - name: MongoDB integration, concurrency and chaos tests
+        run: npm run test:mongo
+      - name: Seed
+        run: npm run seed
+      - name: Build
+        run: npm run build
+      - name: Bundle budget
+        run: npm run bundle:check
+      - name: Storybook build (design system docs)
+        run: npm run storybook:build
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.14.x autorun
+      - name: Upload build for preview deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: .next
+          retention-days: 3
+
+  # Preview/production deploys attach here per hosting platform (Vercel:
+  # zero-config on PR; canary + auto-rollback configured in the platform).
