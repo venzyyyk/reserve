@@ -26,10 +26,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    env:
-      MONGODB_URI: mongodb://localhost:27017
-      MONGODB_DB_NAME: reserve_ci
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,20 +50,37 @@ jobs:
           retention-days: 30
       - name: Format check
         run: npm run format
+      # No MONGODB_URI here on purpose. The fast suite is written against
+      # the in-memory adapter and its seeded fixtures; pointing it at an
+      # empty database makes every booking test fail with "unknown_table".
       - name: Unit & component tests
         run: npm test
       - name: MongoDB integration, concurrency and chaos tests
         run: npm run test:mongo
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB_NAME: reserve_ci
       - name: Seed
         run: npm run seed
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB_NAME: reserve_ci
       - name: Build
         run: npm run build
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB_NAME: reserve_ci
       - name: Bundle budget
         run: npm run bundle:check
       - name: Storybook build (design system docs)
         run: npm run storybook:build
+      # The production server refuses to start without a database, so
+      # Lighthouse needs one to have anything to measure.
       - name: Lighthouse CI
         run: npx --yes @lhci/cli@0.14.x autorun
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB_NAME: reserve_ci
       - name: Upload build for preview deploy
         uses: actions/upload-artifact@v4
         with:
