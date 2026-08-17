@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { TYPE_SCALE, cn } from "../cn";
 
@@ -11,8 +12,18 @@ import { TYPE_SCALE, cn } from "../cn";
  *
  * So the theme is the source of truth and this test is the alarm.
  */
+/**
+ * A path string, not `new URL(..., import.meta.url)`.
+ *
+ * `import.meta.url` is a perfectly good `file:` URL here — the problem is
+ * that jsdom installs its own `URL` global, and `node:fs` only accepts URL
+ * objects built by Node's own class. Hand it jsdom's and it rejects it as
+ * `ERR_INVALID_URL_SCHEME`, which reads like the URL is wrong when the type
+ * is. `i18n-namespaces.test.ts` resolves from the working directory for the
+ * same reason.
+ */
 const theme = readFileSync(
-  new URL("../../styles/globals.css", import.meta.url),
+  path.join(process.cwd(), "src", "shared", "styles", "globals.css"),
   "utf8",
 );
 
