@@ -86,6 +86,13 @@ It only inserts what is missing, so running it twice changes nothing. It
 refuses to run with `NODE_ENV=production` unless forced, which is a guard
 against seeding over an operator's edited prices by accident.
 
+**This puts no clubs in the database, on purpose.** The sample catalogue —
+five invented venues, guests with made-up numbers, applications nobody sent,
+reviews nobody wrote — is behind `--demo` and belongs on a local database
+only. Launching with fictional clubs and fabricated testimonials is a
+different kind of wrong from a bug. Real clubs are added one at a time in
+_Super Admin → Клуби_, as they sign up.
+
 ## 4. Domain
 
 `.ua` requires a registered trademark. `.com.ua` does not and is what most

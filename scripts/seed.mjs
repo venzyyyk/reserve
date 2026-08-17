@@ -15,7 +15,8 @@
  *      changes nothing the second time.
  *
  * Usage:
- *   npm run seed              # fill in what is missing
+ *   npm run seed              # billing plans only — safe on a real database
+ *   npm run seed -- --demo    # ...plus sample clubs, guests and reviews
  *   npm run seed -- --reset   # wipe the seeded collections first
  */
 import { readFileSync } from "node:fs";
@@ -26,6 +27,8 @@ const root = process.cwd();
 const args = new Set(process.argv.slice(2));
 const reset = args.has("--reset");
 const force = args.has("--force");
+/** Sample clubs, guests, applications and reviews. Local use only. */
+const demo = args.has("--demo");
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB_NAME ?? "reserve";
@@ -207,15 +210,34 @@ try {
   await client.connect();
   const db = client.db(dbName);
 
+  /**
+   * Two kinds of data live in this script, and only one of them belongs on a
+   * real deployment.
+   *
+   * The billing plans are the actual commercial offer — the page that sells
+   * to clubs reads its prices from the database, so without them `/for-clubs`
+   * shows tiers with no numbers. Everything else is invented: five clubs that
+   * do not exist, guests with made-up phone numbers, applications nobody
+   * sent, and reviews nobody wrote. Seeding those into production would mean
+   * launching with fictional venues and fabricated testimonials, which is a
+   * different kind of wrong from a bug.
+   *
+   * So demo data is opt-in. Real clubs arrive through the admin panel, one at
+   * a time, as they sign up.
+   */
   const results = {
-    clubs: await fill(db, "clubs", clubs),
     billingFeatures: await fill(db, "billingFeatures", billing.features),
     billingPlans: await fill(db, "billingPlans", billing.plans),
-    promotions: await fill(db, "promotions", promotions),
-    placements: await fill(db, "placements", placements, "clubId"),
-    users: await fill(db, "users", users),
-    clubApplications: await fill(db, "clubApplications", applications),
-    reviews: await fill(db, "reviews", reviews),
+    ...(demo
+      ? {
+          clubs: await fill(db, "clubs", clubs),
+          promotions: await fill(db, "promotions", promotions),
+          placements: await fill(db, "placements", placements, "clubId"),
+          users: await fill(db, "users", users),
+          clubApplications: await fill(db, "clubApplications", applications),
+          reviews: await fill(db, "reviews", reviews),
+        }
+      : {}),
   };
 
   console.log(`Seeded ${dbName}${reset ? " (reset)" : ""}:`);
@@ -223,8 +245,11 @@ try {
     console.log(`  ${name.padEnd(18)} +${inserted} inserted, ${kept} kept`);
   }
   console.log(
-    "\nClubs are seeded once and then edited in the admin panel; re-running\n" +
-      "this will not overwrite changes made there.",
+    demo
+      ? "\nSample data inserted. Clubs are seeded once and then edited in the\n" +
+          "admin panel; re-running this will not overwrite changes made there."
+      : "\nBilling plans only. Add real clubs in the admin panel, or pass\n" +
+          "--demo for the sample catalogue on a local database.",
   );
 } catch (error) {
   // The URI carries credentials; report the failure, never the string.
