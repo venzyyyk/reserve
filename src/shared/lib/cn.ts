@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { extendTailwindMerge } from "tailwind-merge";
+import { createTailwindMerge, getDefaultConfig } from "tailwind-merge";
 
 /**
  * Cue's type scale lives in Tailwind's `--text-*` namespace, so its utilities
@@ -33,8 +33,22 @@ export const TYPE_SCALE = [
   "price",
 ] as const;
 
-const twMerge = extendTailwindMerge({
-  extend: { classGroups: { "font-size": [{ text: [...TYPE_SCALE] }] } },
+/**
+ * Registered in `theme.text`, which is where tailwind-merge's own `font-size`
+ * group reads its scale from — so our names arrive by the same door as
+ * `text-sm` and `text-2xl` rather than as a bolted-on second rule.
+ *
+ * `extendTailwindMerge` would say this in one line, but it ships
+ * `mergeConfigs`, a deep recursive merge, to add one entry. Measured on the
+ * same bundle: extend costs 327 B gzip, this costs 71 B. Both are correct;
+ * one is over four times the price, and this file is in every client bundle.
+ */
+const twMerge = createTailwindMerge(() => {
+  const config = getDefaultConfig();
+  return {
+    ...config,
+    theme: { ...config.theme, text: [...config.theme.text, ...TYPE_SCALE] },
+  };
 });
 
 /** Merge class values with Tailwind conflict resolution. */

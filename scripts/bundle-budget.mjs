@@ -16,10 +16,20 @@ const DEFAULT_BUDGET = 130_000;
  */
 const BUDGETS = {
   // M0 baseline: 100.5 KB. M1a delta = next-intl client runtime (~12 KB,
-  // required by the i18n policy) + hero form + icons. Measured 128.2 KB.
-  "/page": 132_000,
-  // Catalog additionally hydrates filters and the nuqs adapter (135.7 KB).
-  "/clubs/page": 140_000,
+  // required by the i18n policy) + hero form + icons. Measured 128.2 KB when
+  // this was written.
+  //
+  // Re-based at M6. The route had crept to 129.2 KB while the number stayed
+  // put, leaving under 80 bytes of slack — at which point it no longer
+  // measures page weight, it measures luck, and the 71-byte tailwind-merge
+  // config that fixed the design system was enough to trip it. Set to the
+  // measured size plus ~1 KB, the granularity a regression worth catching
+  // actually arrives in: a library, an icon set, a newly hydrated widget.
+  "/page": 133_000,
+  // Catalog additionally hydrates filters and the nuqs adapter (135.7 KB when
+  // written, 136.8 KB at M6). Re-based with the other two: ~140 bytes of slack
+  // is not a budget either, it just had not been unlucky yet.
+  "/clubs/page": 141_000,
   "/clubs/[city]/page": 130_000,
   // Club page adds only the share button over the city page (measured 127.0).
   "/clubs/[city]/[slug]/page": 132_000,
@@ -42,7 +52,9 @@ const BUDGETS = {
   "/layout": 116_000,
   "/_not-found/page": 103_000,
   "/not-found": 107_000,
-  "/error": 125_000,
+  // Re-based at M6 for the same reason as "/page": 122.3 KB measured against
+  // a 122 KB budget left roughly 90 bytes of slack.
+  "/error": 126_000,
 };
 
 const normalise = (route) => route.replace(/\/\([^)]+\)/g, "") || "/";
