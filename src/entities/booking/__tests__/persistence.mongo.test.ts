@@ -15,26 +15,34 @@ import { paymentProvider } from "../payment-provider";
  */
 const CLUB = "clb_kyiv_klasyk";
 const TABLE = "russian-1";
-const tomorrow = (): string =>
-  new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
 
-let slotCursor = 15 * 60;
-/** Every test gets its own hours, so one test never blocks another. */
-const nextSlot = (minutes = 60): { start: number; end: number } => {
-  const start = slotCursor;
-  slotCursor += minutes;
-  return { start, end: start + minutes };
-};
+interface Window {
+  date: string;
+  start: number;
+  end: number;
+}
 
-const book = async (
-  range: { start: number; end: number },
-  date = tomorrow(),
-) => {
+/**
+ * A day of its own per test, at an hour inside opening time. Tests that
+ * shared a day would block each other's tables and report it as a bug in
+ * the code.
+ */
+let dayOffset = 60;
+const nextWindow = (): Window => ({
+  date: new Date(Date.now() + dayOffset++ * 86_400_000)
+    .toISOString()
+    .slice(0, 10),
+  start: 15 * 60,
+  end: 17 * 60,
+});
+
+const book = async (window: Window) => {
   const held = await repository.hold({
     clubId: CLUB,
     tableId: TABLE,
-    date,
-    ...range,
+    date: window.date,
+    start: window.start,
+    end: window.end,
     sessionId: "sess_test",
     idempotencyKey: crypto.randomUUID(),
   });
@@ -55,7 +63,7 @@ describe("persistence", () => {
   });
 
   it("keeps a confirmed booking across a reconnect", async () => {
-    const booking = await book(nextSlot());
+    const booking = await book(nextWindow());
     const confirmed = await repository.markPaid(booking.id);
     expect(confirmed?.status).toBe("confirmed");
 
@@ -71,8 +79,8 @@ describe("persistence", () => {
   });
 
   it("keeps the slot blocked across a reconnect", async () => {
-    const range = nextSlot();
-    const booking = await book(range);
+    const window = nextWindow();
+    const booking = await book(window);
     await repository.markPaid(booking.id);
 
     await closeMongo();
@@ -80,8 +88,9 @@ describe("persistence", () => {
     const second = await repository.hold({
       clubId: CLUB,
       tableId: TABLE,
-      date: tomorrow(),
-      ...range,
+      date: window.date,
+      start: window.start,
+      end: window.end,
       sessionId: "sess_other",
       idempotencyKey: crypto.randomUUID(),
     });
@@ -89,7 +98,7 @@ describe("persistence", () => {
   });
 
   it("keeps payment state across a reconnect", async () => {
-    const booking = await book(nextSlot());
+    const booking = await book(nextWindow());
     const payment = await paymentProvider.create({
       bookingId: booking.id,
       amount: booking.total,
@@ -106,19 +115,19 @@ describe("persistence", () => {
   });
 
   it("reports occupancy from the database, not from process memory", async () => {
-    const range = nextSlot();
-    const booking = await book(range);
+    const window = nextWindow();
+    const booking = await book(window);
     await repository.markPaid(booking.id);
 
     await closeMongo();
 
-    const occupancy = await repository.occupancyFor(CLUB, tomorrow());
+    const occupancy = await repository.occupancyFor(CLUB, window.date);
     expect(
       occupancy.some(
         (slot) =>
           slot.tableId === TABLE &&
-          slot.start === range.start &&
-          slot.end === range.end,
+          slot.start === window.start &&
+          slot.end === window.end,
       ),
     ).toBe(true);
   });

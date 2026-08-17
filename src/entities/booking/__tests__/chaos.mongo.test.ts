@@ -14,25 +14,37 @@ import { HOLD_TTL_MS, PAYMENT_WINDOW_MS } from "../model";
  * Only `Date` is faked. The driver's own heartbeats and socket timeouts run
  * on real timers, and freezing those would break the connection rather than
  * the clock.
+ *
+ * Each test works on its own calendar day at a fixed hour inside opening
+ * time. Walking the clock instead would eventually step past closing, and a
+ * test about payments would fail with "closed".
  */
 const CLUB = "clb_kyiv_klasyk";
 const TABLE = "russian-1";
-const date = (): string =>
-  new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
 
-let cursor = 15 * 60;
-const nextSlot = (minutes = 60): { start: number; end: number } => {
-  const start = cursor;
-  cursor += minutes;
-  return { start, end: start + minutes };
-};
+interface Window {
+  date: string;
+  start: number;
+  end: number;
+}
 
-const hold = (range: { start: number; end: number }, tableId = TABLE) =>
+/** 15:00–17:00 is inside this club's hours on every weekday. */
+let dayOffset = 30;
+const nextWindow = (): Window => ({
+  date: new Date(Date.now() + dayOffset++ * 86_400_000)
+    .toISOString()
+    .slice(0, 10),
+  start: 15 * 60,
+  end: 17 * 60,
+});
+
+const hold = (window: Window) =>
   repository.hold({
     clubId: CLUB,
-    tableId,
-    date: date(),
-    ...range,
+    tableId: TABLE,
+    date: window.date,
+    start: window.start,
+    end: window.end,
     sessionId: "sess",
     idempotencyKey: crypto.randomUUID(),
   });
@@ -53,19 +65,19 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("frees the table when a hold expires", async () => {
-    const range = nextSlot();
-    const first = await hold(range);
+    const window = nextWindow();
+    const first = await hold(window);
     expect(first.ok).toBe(true);
 
     advance(HOLD_TTL_MS + 1000);
 
-    const second = await hold(range);
+    const second = await hold(window);
     expect(second.ok).toBe(true);
   });
 
   it("reports an expired hold as gone rather than live", async () => {
-    const first = await hold(nextSlot());
-    if (!first.ok) throw new Error("setup failed");
+    const first = await hold(nextWindow());
+    if (!first.ok) throw new Error(`setup failed: ${first.reason}`);
 
     advance(HOLD_TTL_MS + 1000);
 
@@ -76,22 +88,22 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("leaves an expired hold out of occupancy immediately, not on a timer", async () => {
-    const range = nextSlot();
-    await hold(range);
+    const window = nextWindow();
+    await hold(window);
 
     advance(HOLD_TTL_MS + 1000);
 
-    const occupancy = await repository.occupancyFor(CLUB, date());
+    const occupancy = await repository.occupancyFor(CLUB, window.date);
     expect(
       occupancy.some(
-        (slot) => slot.start === range.start && slot.tableId === TABLE,
+        (slot) => slot.start === window.start && slot.tableId === TABLE,
       ),
     ).toBe(false);
   });
 
   it("gives a payment its own window instead of the hold's leftovers", async () => {
-    const held = await hold(nextSlot());
-    if (!held.ok) throw new Error("setup failed");
+    const held = await hold(nextWindow());
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
 
     // Almost all of the hold is gone by the time the guest submits.
     advance(HOLD_TTL_MS - 2000);
@@ -108,13 +120,13 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("confirms a late payment when the table is still free", async () => {
-    const held = await hold(nextSlot());
-    if (!held.ok) throw new Error("setup failed");
+    const held = await hold(nextWindow());
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
     const booking = await repository.reserveForPayment(
       held.hold.id,
       "+380671112233",
     );
-    if (!booking) throw new Error("setup failed");
+    if (!booking) throw new Error("setup failed: could not reserve");
 
     advance(PAYMENT_WINDOW_MS + 60_000);
 
@@ -124,25 +136,25 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("owes a refund when a late payment lands on a table someone else took", async () => {
-    const range = nextSlot();
-    const held = await hold(range);
-    if (!held.ok) throw new Error("setup failed");
+    const window = nextWindow();
+    const held = await hold(window);
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
     const booking = await repository.reserveForPayment(
       held.hold.id,
       "+380671112233",
     );
-    if (!booking) throw new Error("setup failed");
+    if (!booking) throw new Error("setup failed: could not reserve");
 
     advance(PAYMENT_WINDOW_MS + 60_000);
 
     // Someone else books the freed slot and pays.
-    const rival = await hold(range);
+    const rival = await hold(window);
     if (!rival.ok) throw new Error("rival should have won the free slot");
     const rivalBooking = await repository.reserveForPayment(
       rival.hold.id,
       "+380670000000",
     );
-    if (!rivalBooking) throw new Error("setup failed");
+    if (!rivalBooking) throw new Error("setup failed: rival could not reserve");
     await repository.markPaid(rivalBooking.id);
 
     // Now the original payment finally settles.
@@ -151,9 +163,9 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
     expect(settled?.refundRequired).toBe(true);
 
     // And the table belongs to exactly one of them.
-    const occupancy = await repository.occupancyFor(CLUB, date());
+    const occupancy = await repository.occupancyFor(CLUB, window.date);
     const claims = occupancy.filter(
-      (slot) => slot.tableId === TABLE && slot.start === range.start,
+      (slot) => slot.tableId === TABLE && slot.start === window.start,
     );
     expect(claims).toHaveLength(1);
 
@@ -162,13 +174,13 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("never lets a duplicate failure cancel a confirmed booking", async () => {
-    const held = await hold(nextSlot());
-    if (!held.ok) throw new Error("setup failed");
+    const held = await hold(nextWindow());
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
     const booking = await repository.reserveForPayment(
       held.hold.id,
       "+380671112233",
     );
-    if (!booking) throw new Error("setup failed");
+    if (!booking) throw new Error("setup failed: could not reserve");
 
     await repository.markPaid(booking.id);
     await repository.markFailed(booking.id);
@@ -178,30 +190,30 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("releases the table when a payment fails", async () => {
-    const range = nextSlot();
-    const held = await hold(range);
-    if (!held.ok) throw new Error("setup failed");
+    const window = nextWindow();
+    const held = await hold(window);
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
     const booking = await repository.reserveForPayment(
       held.hold.id,
       "+380671112233",
     );
-    if (!booking) throw new Error("setup failed");
+    if (!booking) throw new Error("setup failed: could not reserve");
 
     await repository.markFailed(booking.id);
     expect((await repository.byId(booking.id))?.status).toBe("cancelled");
 
-    const retry = await hold(range);
+    const retry = await hold(window);
     expect(retry.ok).toBe(true);
   });
 
   it("marks a booking expired once its payment window closes", async () => {
-    const held = await hold(nextSlot());
-    if (!held.ok) throw new Error("setup failed");
+    const held = await hold(nextWindow());
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
     const booking = await repository.reserveForPayment(
       held.hold.id,
       "+380671112233",
     );
-    if (!booking) throw new Error("setup failed");
+    if (!booking) throw new Error("setup failed: could not reserve");
 
     advance(PAYMENT_WINDOW_MS + 1000);
 
@@ -209,8 +221,8 @@ describe("chaos: holds and payment settlement on MongoDB", () => {
   });
 
   it("resumes the original payment when the same hold is submitted twice", async () => {
-    const held = await hold(nextSlot());
-    if (!held.ok) throw new Error("setup failed");
+    const held = await hold(nextWindow());
+    if (!held.ok) throw new Error(`setup failed: ${held.reason}`);
 
     const first = await repository.reserveForPayment(
       held.hold.id,

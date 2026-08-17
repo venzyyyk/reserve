@@ -23,8 +23,29 @@ const base = process.env.MONGODB_DB_NAME ?? "reserve";
 process.env.MONGODB_DB_NAME = base.endsWith("_test") ? base : `${base}_test`;
 
 beforeAll(async () => {
-  const { ensureIndexes } = await import("@/shared/db/collections");
+  const { COLLECTIONS, collection, ensureIndexes } =
+    await import("@/shared/db/collections");
   await ensureIndexes();
+
+  /**
+   * Clubs are a precondition, not a fixture.
+   *
+   * Until M6 they came from a content file and were there whatever the
+   * storage mode. Now they are database rows — and a booking suite against
+   * an empty database fails with "unknown_table" on every test, which
+   * describes the setup rather than the code. So the suite seeds them, the
+   * same way it creates indexes.
+   */
+  const { clubsFileSchema } = await import("@/entities/club/schema");
+  const raw = await import("@/entities/club/content/clubs.uk.json");
+  const clubs = clubsFileSchema.parse(raw.default);
+
+  const documents = await collection(COLLECTIONS.clubs);
+  await Promise.all(
+    clubs.map((club) =>
+      documents.replaceOne({ id: club.id }, club, { upsert: true }),
+    ),
+  );
 });
 
 afterAll(async () => {
