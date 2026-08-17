@@ -43,15 +43,39 @@ function parse<T extends z.ZodTypeAny>(schema: T, input: unknown): z.infer<T> {
   return result.data as z.infer<T>;
 }
 
+/**
+ * An empty variable is an unset variable.
+ *
+ * Hosting dashboards do not distinguish the two. Vercel reads `.env.example`,
+ * offers every name it finds as a row to fill in, and stores `""` for the ones
+ * you leave blank — so a deployment that has simply not chosen an app URL yet
+ * arrives here as an empty string rather than as nothing at all. Zod is right
+ * to reject `""` as a URL, and `.default()` never runs, because a value was
+ * technically provided. The build then fails on a variable the operator
+ * deliberately left alone.
+ *
+ * Normalising here rather than loosening each schema keeps the rules honest:
+ * `NEXT_PUBLIC_APP_URL` still has to be a real URL when it is set, and
+ * `MONGODB_URI` is still required. Whitespace counts as empty too — a value
+ * pasted with a stray newline is not a configuration choice either.
+ */
+const unset = (value: string | undefined): string | undefined =>
+  value === undefined || value.trim() === "" ? undefined : value;
+
 export const clientEnv = parse(clientSchema, {
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  NEXT_PUBLIC_FLAGS: process.env.NEXT_PUBLIC_FLAGS,
+  NEXT_PUBLIC_APP_URL: unset(process.env.NEXT_PUBLIC_APP_URL),
+  NEXT_PUBLIC_SENTRY_DSN: unset(process.env.NEXT_PUBLIC_SENTRY_DSN),
+  NEXT_PUBLIC_FLAGS: unset(process.env.NEXT_PUBLIC_FLAGS),
 });
 
 /** Server-only env. Never import from client components. */
 export function serverEnv(): z.infer<typeof serverSchema> {
-  return parse(serverSchema, process.env);
+  return parse(serverSchema, {
+    NEXT_PUBLIC_APP_URL: unset(process.env.NEXT_PUBLIC_APP_URL),
+    NEXT_PUBLIC_SENTRY_DSN: unset(process.env.NEXT_PUBLIC_SENTRY_DSN),
+    NEXT_PUBLIC_FLAGS: unset(process.env.NEXT_PUBLIC_FLAGS),
+    SENTRY_DSN: unset(process.env.SENTRY_DSN),
+  });
 }
 
 /**
@@ -63,13 +87,13 @@ export function serverEnv(): z.infer<typeof serverSchema> {
  * booking on the next deploy. See `src/shared/db/storage.ts`.
  */
 export function isMongoConfigured(): boolean {
-  return Boolean(process.env.MONGODB_URI);
+  return unset(process.env.MONGODB_URI) !== undefined;
 }
 
 /** Validated database env. Throws if MongoDB is configured incorrectly. */
 export function databaseEnv(): z.infer<typeof databaseSchema> {
   return parse(databaseSchema, {
-    MONGODB_URI: process.env.MONGODB_URI,
-    MONGODB_DB_NAME: process.env.MONGODB_DB_NAME,
+    MONGODB_URI: unset(process.env.MONGODB_URI),
+    MONGODB_DB_NAME: unset(process.env.MONGODB_DB_NAME),
   });
 }
