@@ -32,14 +32,25 @@ export default async function HomePage() {
     getTranslations("home"),
   ]);
 
-  const stats = [
-    { value: String(all.length), label: t("stats.clubs") },
-    {
-      value: String(all.reduce((sum, club) => sum + totalTables(club), 0)),
-      label: t("stats.tables"),
-    },
-    { value: String(CITIES.length), label: t("stats.cities") },
-  ];
+  /**
+   * Until a single club is listed, the counters count nothing — and a hero
+   * that says "0 клубів, 0 столів" undersells the product to the one audience
+   * that matters right now, the club owners being pitched. The row appears
+   * with the first club and never has to be thought about again.
+   */
+  const stats =
+    all.length === 0
+      ? []
+      : [
+          { value: String(all.length), label: t("stats.clubs") },
+          {
+            value: String(
+              all.reduce((sum, club) => sum + totalTables(club), 0),
+            ),
+            label: t("stats.tables"),
+          },
+          { value: String(CITIES.length), label: t("stats.cities") },
+        ];
 
   return (
     <>

@@ -51,7 +51,14 @@ export async function Hero({ stats }: { stats: readonly HeroStat[] }) {
           <QuickSearchForm />
         </div>
 
-        <dl className="flex flex-wrap gap-x-10 gap-y-4">
+        {/* A counter at zero is worse than no counter: "0 клубів" under a
+            headline promising a booking in thirty seconds reads as a broken
+            site, and it is the first thing a club owner sees when we pitch
+            them. Nothing to count, nothing to show. */}
+        <dl
+          hidden={stats.length === 0}
+          className="flex flex-wrap gap-x-10 gap-y-4"
+        >
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col">
               <dt className="sr-only">{stat.label}</dt>

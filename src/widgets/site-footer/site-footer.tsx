@@ -62,10 +62,10 @@ export async function SiteFooter() {
             {t("forClubsLink")}
           </Link>
           <a
-            href="mailto:clubs@reserve.ua"
+            href="mailto:supportreserv@gmail.com"
             className="text-label text-fg-3 hover:text-fg duration-fast w-fit rounded-sm transition-colors ease-out"
           >
-            clubs@reserve.ua
+            supportreserv@gmail.com
           </a>
         </div>
       </div>

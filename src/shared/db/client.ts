@@ -50,10 +50,25 @@ async function connect(): Promise<Connection> {
   return { client, db: client.db(env.MONGODB_DB_NAME) };
 }
 
-/** Strips anything that might carry the URI out of a driver error. */
+/**
+ * Strips anything that might carry the URI out of a driver error, while
+ * keeping the one field that says what actually went wrong.
+ *
+ * The driver's `message` can quote the connection string, so it is dropped.
+ * `codeName` cannot: it is a fixed MongoDB identifier — `AuthenticationFailed`,
+ * `Unauthorized`, `HostUnreachable`. The first version of this function threw
+ * all of it away, and the difference between "MongoServerError" and
+ * "MongoServerError (AuthenticationFailed)" was a deploy spent guessing
+ * whether the password was wrong or the network was closed.
+ */
 function redactCause(cause: unknown): Error {
   const name = cause instanceof Error ? cause.name : "Error";
-  return new Error(`${name} (details omitted: may contain credentials)`);
+  const code = (cause as { codeName?: unknown } | null)?.codeName;
+  const label =
+    typeof code === "string" && /^[A-Za-z]+$/.test(code)
+      ? `${name} (${code})`
+      : name;
+  return new Error(`${label} — details omitted: they may contain credentials`);
 }
 
 /**

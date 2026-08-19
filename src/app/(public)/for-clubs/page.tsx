@@ -61,14 +61,24 @@ export default async function ForClubsPage() {
   ]);
 
   const visible = publicPlans(plans);
-  const stats = [
-    { value: `${clubs.length}+`, label: t("hero.statClubs") },
-    {
-      value: String(clubs.reduce((sum, club) => sum + totalTables(club), 0)),
-      label: t("hero.statTables"),
-    },
-    { value: String(CITIES.length), label: t("hero.statCities") },
-  ];
+  /**
+   * "0+ клубів уже з нами" is the worst sentence on the page it appears on:
+   * this is the pitch to club owners, and it argues against itself. Hidden
+   * until there is something to boast about.
+   */
+  const stats =
+    clubs.length === 0
+      ? []
+      : [
+          { value: `${clubs.length}+`, label: t("hero.statClubs") },
+          {
+            value: String(
+              clubs.reduce((sum, club) => sum + totalTables(club), 0),
+            ),
+            label: t("hero.statTables"),
+          },
+          { value: String(CITIES.length), label: t("hero.statCities") },
+        ];
 
   return (
     <>

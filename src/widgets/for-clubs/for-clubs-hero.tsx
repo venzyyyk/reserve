@@ -60,7 +60,10 @@ export function ForClubsHero({
           </div>
         </div>
 
-        <dl className="flex flex-wrap gap-x-12 gap-y-4">
+        <dl
+          hidden={stats.length === 0}
+          className="flex flex-wrap gap-x-12 gap-y-4"
+        >
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col">
               <dt className="sr-only">{stat.label}</dt>
