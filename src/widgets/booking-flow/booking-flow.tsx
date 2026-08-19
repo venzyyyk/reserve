@@ -213,7 +213,12 @@ export function BookingFlow({ club }: { club: Club }) {
   ].filter(Boolean) as string[];
 
   return (
-    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-6 px-6 pt-6 pb-32">
+    /* The site header is `fixed` and 64px tall, so `pt-6` put the back button
+       and the progress bar underneath it — clipped, and the back button was
+       not clickable at all on the steps that need it. Every other page clears
+       the header with `pt-28`; this one is tighter because the flow should
+       get to the tables quickly, not because the header is smaller here. */
+    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-6 px-6 pt-24 pb-32 md:pt-28">
       <div className="flex items-center gap-3">
         <button
           type="button"

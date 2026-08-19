@@ -35,7 +35,9 @@ export default async function BookPage({
 
   return (
     <ProductProviders>
-      <Suspense fallback={<Skeleton className="mx-6 mt-6 h-64" />}>
+      {/* Same clearance as the flow it stands in for, or the page jumps
+          downward the moment the real thing arrives. */}
+      <Suspense fallback={<Skeleton className="mx-6 mt-24 h-64 md:mt-28" />}>
         <BookingFlow club={club} />
       </Suspense>
     </ProductProviders>
