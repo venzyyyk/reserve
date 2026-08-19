@@ -22,6 +22,22 @@ export const metadata: Metadata = {
 };
 
 /**
+ * The counters and the featured row read the club list, so this page has to
+ * follow it.
+ *
+ * Editing a club in the admin panel already calls `revalidatePath("/")` — that
+ * path is instant and stays instant. This is the safety net for everything
+ * that changes the database *without* going through the app: the seed script,
+ * a fix made straight in Atlas, a restore. Those cannot call revalidate, and
+ * before this the homepage would have kept yesterday's numbers until the next
+ * deploy.
+ *
+ * A minute, not `force-dynamic`: the homepage is the LCP page and the number
+ * of clubs is not worth a database round trip on every visit.
+ */
+export const revalidate = 60;
+
+/**
  * Homepage — composed entirely of widgets (UI composition policy). All
  * sections are server components; only the hero search form hydrates.
  */
