@@ -31,7 +31,19 @@ export function StepWhen({
   const dates = dateStrip(today);
 
   return (
-    <fieldset className="flex flex-col gap-4">
+    /**
+     * `min-w-0` is load-bearing, not tidying.
+     *
+     * Browsers give `<fieldset>` a UA `min-inline-size: min-content`, so it
+     * refuses to shrink below its widest child. The date strip is fourteen
+     * 64px buttons — about a thousand pixels — so the fieldset grew to fit
+     * them, the strip never became narrower than its content, and
+     * `overflow-x-auto` had nothing to scroll. The dates simply ran off the
+     * card and across the page. No other element in the codebase behaves this
+     * way, which is why it looked like a broken layout rather than a missing
+     * property.
+     */
+    <fieldset className="flex min-w-0 flex-col gap-4">
       <legend className="text-heading text-fg mb-4 font-semibold">
         {t("whenTitle")}
       </legend>
