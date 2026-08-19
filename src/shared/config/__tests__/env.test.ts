@@ -61,6 +61,24 @@ describe("wrong variables still fail", () => {
     await expect(load()).rejects.toThrow(/NEXT_PUBLIC_APP_URL/);
   });
 
+  it("rejects a connection string pasted into the public site URL", async () => {
+    // The first deploy of this project published exactly this in every page's
+    // canonical tag: adjacent boxes on a hosting dashboard, both wanting a
+    // URL, and `url()` accepts any scheme.
+    vi.stubEnv(
+      "NEXT_PUBLIC_APP_URL",
+      "mongodb+srv://user:secret@cluster0.example.mongodb.net/",
+    );
+
+    await expect(load()).rejects.toThrow(/http/);
+  });
+
+  it("rejects an http address that carries credentials", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://admin:hunter2@reserve.com.ua");
+
+    await expect(load()).rejects.toThrow(/credentials/);
+  });
+
   it("rejects a connection string that is not MongoDB's", async () => {
     vi.stubEnv("MONGODB_URI", "postgres://localhost:5432");
 
